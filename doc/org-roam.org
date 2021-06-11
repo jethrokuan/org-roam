@@ -995,6 +995,26 @@ for customizable options.
   Extra options for citation edges in the graphviz output.
   Example: ~'(("color" . "red"))~
 
+- User Option: org-roam-graph-url-extension
+
+  Change the file extension of the URLs linked to in the graphviz
+  output. Useful if you will be browsing a published repository using
+  the graph. See also: org-roam-graph-url-prefix
+
+#+BEGIN_EXAMPLE
+    (setq org-roam-graph-url-extension "html")
+#+END_EXAMPLE
+
+- User Option: org-roam-graph-url-prefix
+
+  Change the URL prefix of the URLs linked to in the graphviz
+  output. Useful if you will be browsing a published repository using
+  the graph. See also: org-roam-graph-url-extension
+
+#+BEGIN_EXAMPLE
+    (setq org-roam-graph-url-prefix "http://127.0.0.1:12345")
+#+END_EXAMPLE
+
 ** Excluding Nodes and Edges
 
 One may want to exclude certain files to declutter the graph.

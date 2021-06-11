@@ -171,6 +171,14 @@ If WRAP-VAL is non-nil it wraps the VAL."
 The Org-roam database titles table is read, to obtain the list of titles.
 The links table is then read to obtain all directed links, and formatted
 into a digraph."
+  (defun ensure-file-ext (file)
+    (catch 'pass
+      (unless org-roam-graph-url-extension
+        (throw 'pass file)))
+    (let ((sans-ext (file-name-sans-extension file)))
+      (concat sans-ext "." org-roam-graph-url-extension)))
+  (defun ensure-edge-ext (edge)
+    `(,(ensure-file-ext (car edge)) ,(ensure-file-ext (cadr edge))))
   (org-roam-db--ensure-built)
   (org-roam--with-temp-buffer nil
     (let* ((nodes (org-roam-db-query node-query))
@@ -198,7 +206,8 @@ into a digraph."
                                     (intern (concat "org-roam-graph-" attribute "-extra-config")))
                                    ","))))
       (dolist (node nodes)
-        (let* ((file (xml-escape-string (car node)))
+        (let* ((file (ensure-file-ext (car node)))
+               (file (xml-escape-string file))
                (title (or (cadr node)
                           (org-roam--path-to-slug file)))
                (shortened-title (pcase org-roam-graph-shorten-titles
@@ -207,10 +216,17 @@ into a digraph."
                                   (_ title)))
                (shortened-title (org-roam-string-quote shortened-title))
                (title (org-roam-string-quote title))
+               (url (if org-roam-graph-url-prefix
+                        (let* ((prefix org-roam-graph-url-prefix)
+                               (roam-dir (expand-file-name org-roam-directory))
+                               (file (replace-regexp-in-string roam-dir "" file)))
+                          (concat prefix file))
+                      (concat "org-protocol://roam-file?file=" (url-hexify-string file))))
                (node-properties
                 `(("label"   . ,shortened-title)
-                  ("URL"     . ,(concat "org-protocol://roam-file?file=" (url-hexify-string file)))
+                  ("URL"     . ,url)
                   ("tooltip" . ,(xml-escape-string title)))))
+
           (insert
            (format "  \"%s\" [%s];\n" file
                    (mapconcat (lambda (n)
@@ -218,13 +234,13 @@ into a digraph."
                               node-properties ",")))))
       (dolist (edge edges)
         (insert (apply #'format `("  \"%s\" -> \"%s\";\n"
-                                  ,@(mapcar #'xml-escape-string edge)))))
+                                  ,@(mapcar #'xml-escape-string (ensure-edge-ext edge))))))
       (insert (format "  edge [%s];\n"
                       (mapconcat #'org-roam-graph--dot-option
                                  org-roam-graph-edge-cites-extra-config ",")))
       (dolist (edge edges-cites)
         (insert (apply #'format `("  \"%s\" -> \"%s\";\n"
-                                  ,@(mapcar #'xml-escape-string edge)))))
+                                  ,@(mapcar #'xml-escape-string (ensure-edge-ext edge))))))
       (insert "}")
       (buffer-string))))
 
