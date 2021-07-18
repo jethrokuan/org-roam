@@ -1211,8 +1211,8 @@ variable using directory-local variables. This is what ~.dir-locals.el~ may
 contain:
 
 #+BEGIN_SRC emacs-lisp
-  ((nil . ((org-roam-directory . (expand-file-name "."))
-           (org-roam-db-location . (expand-file-name "./org-roam.db")))))
+  ((nil . ((org-roam-directory . ".")
+           (org-roam-db-location . "./org-roam.db"))))
 #+END_SRC
 
 All files within that directory will be treated as their own separate set of
